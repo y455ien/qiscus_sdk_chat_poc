@@ -6,7 +6,7 @@ import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
 
 import '../extensions.dart';
 import '../widget/avatar_widget.dart';
-import 'chat_page.dart';
+import 'chat_page/chat_page.dart';
 import 'create_room_page.dart';
 
 class UserListPage extends StatefulWidget {

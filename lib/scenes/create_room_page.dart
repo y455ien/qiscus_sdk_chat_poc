@@ -7,7 +7,7 @@ import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
 
 import '../extensions.dart';
 import '../widget/avatar_widget.dart';
-import 'chat_page.dart';
+import 'chat_page/chat_page.dart';
 
 class CreateRoomPage extends StatefulWidget {
   CreateRoomPage({

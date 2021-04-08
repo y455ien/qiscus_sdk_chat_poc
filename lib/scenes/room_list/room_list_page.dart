@@ -8,10 +8,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
 
+import '../../ChatSDK.dart';
 import '../../constants.dart';
 import '../../extensions.dart';
 import '../../widget/avatar_widget.dart';
-import '../chat_page.dart';
+import '../chat_page/chat_page.dart';
 import '../login_page.dart';
 import '../profile_page.dart';
 import '../user_list_page.dart';
@@ -37,56 +38,18 @@ enum MenuItems {
 class _RoomListPageState extends State<RoomListPage> {
   RoomListBloc _bloc;
   QAccount account;
-  // QiscusSDK qiscus;
-  // var rooms = HashMap<int, QChatRoom>();
-  // StreamSubscription<QMessage> _onMessageReceivedSubscription;
-  // StreamSubscription<int> _onChatRoomClearedSubscription;
-
-  // void Function() _roomClearedSubs;
-  // void Function() _messageReceivedSubs;
 
   @override
   void initState() {
     super.initState();
-    // qiscus = widget.qiscus;
     account = widget.account;
     _bloc = RoomListBloc();
-
-    // scheduleMicrotask(() async {
-    //   qiscus.getAllChatRooms(callback: (rooms, err) {
-    //     if (err != null) {
-    //       throw err;
-    //     }
-    //     if (err == null) {
-    //       var entries = rooms.map((r) => MapEntry(r.id, r));
-    //       setState(() {
-    //         this.rooms.addEntries(entries);
-    //       });
-    //     }
-    //   });
-    //
-    //   _roomClearedSubs = qiscus.onChatRoomCleared(_onRoomCleared);
-    //   _messageReceivedSubs = qiscus.onMessageReceived(_onMessageReceived);
-    //
-    //   // _onChatRoomClearedSubscription = qiscus
-    //   //     .onChatRoomCleared$()
-    //   //     .takeWhile((_) => this.mounted)
-    //   //     .listen(_onRoomCleared);
-    //
-    //   // _onMessageReceivedSubscription = qiscus
-    //   //     .onMessageReceived$()
-    //   //     .takeWhile((_) => this.mounted)
-    //   //     .listen(_onMessageReceived);
-    // });
   }
 
   @override
   void dispose() {
     super.dispose();
-    // _onMessageReceivedSubscription?.cancel();
-    // _onChatRoomClearedSubscription?.cancel();
-    // _roomClearedSubs?.call();
-    // _messageReceivedSubs?.call();
+    _bloc.onDispose();
   }
 
   @override
@@ -119,142 +82,48 @@ class _RoomListPageState extends State<RoomListPage> {
               switch (item) {
                 case MenuItems.logout:
                   {
-                    await ChatSDK().qiscusSDK.clearUser$();
+                    await ChatSDK().instance.clearUser$();
                     context.pushReplacement(LoginPage());
 
                     break;
                   }
 
                 case MenuItems.profile:
-                  // var _account = await context.push(
-                  //   ProfilePage(
-                  //     qiscus: qiscus,
-                  //     account: account,
-                  //   ),
-                  // );
-                  // setState(() {
-                  //   this.account = _account;
-                  // });
-                  // break;
+                // var _account = await context.push(
+                //   ProfilePage(
+                //     qiscus: qiscus,
+                //     account: account,
+                //   ),
+                // );
+                // setState(() {
+                //   this.account = _account;
+                // });
+                // break;
               }
             },
           ),
         ],
       ),
-      body: StreamBuilder<HashMap<int, QChatRoom>>(
-        stream: _bloc.chatRoomsStream.stream,
-        builder: (context, AsyncSnapshot<HashMap<int, QChatRoom>> snapshot) {
-          if (snapshot.hasData && snapshot.data != null) {
-            return Container(
-              child: RefreshIndicator(
-                onRefresh: () => _bloc.refresh(),
-                child: ListView.separated(
+      body: Container(
+        child: RefreshIndicator(
+          onRefresh: () => _bloc.getAllChatRooms(),
+          child: StreamBuilder<HashMap<int, QChatRoom>>(
+            stream: _bloc.chatRoomsStream.stream,
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data != null) {
+                print("LOG: " + snapshot.data.toString());
+                return ListView.separated(
                   itemBuilder: (context, index) {
-                    var rooms =
-                    snapshot.data.values.where((r) => r.lastMessage != null).toList()
-                      ..sort((r1, r2) {
-                        return r2.lastMessage.timestamp
-                            .compareTo(r1.lastMessage.timestamp);
-                      });
-                    var room = rooms.elementAt(index);
+                    var room = snapshot.data.values.elementAt(index);
                     var lastMessage = _getLastMessage(room.lastMessage);
                     return ListTile(
-                      leading: Stack(
-                        overflow: Overflow.visible,
-                        children: <Widget>[
-                          Hero(
-                            tag: HeroTags.roomAvatar(roomId: room.id),
-                            child: Avatar(url: room.avatarUrl),
-                          ),
-                          if (room.unreadCount > 0)
-                            Positioned(
-                              bottom: -3,
-                              right: -3,
-                              child: Container(
-                                width: 18,
-                                height: 18,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.all(Radius.circular(50)),
-                                  color: Colors.redAccent,
-                                  border: Border.fromBorderSide(BorderSide(
-                                    color: Colors.white,
-                                    width: 1,
-                                  )),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    room.unreadCount > 9
-                                        ? '9+'
-                                        : room.unreadCount.toString(),
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      title: Text(room.name),
-                      subtitle: room.type == QRoomType.single
-                          ? Text(
-                        lastMessage,
-                        style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                          fontSize: 12,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      )
-                          : Row(
-                        children: <Widget>[
-                          Expanded(
-                            flex: 0,
-                            child: Text(
-                              '${room.lastMessage.sender.name}: ',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              lastMessage,
-                              style: TextStyle(
-                                fontStyle: FontStyle.italic,
-                                fontSize: 12,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      trailing: room.lastMessage != null
-                          ? Text(
-                        formatDate(
-                          room.lastMessage?.timestamp,
-                          [HH, ':', mm],
-                        ),
-                      )
-                          : Container(),
-                      // onTap: () async {
-                      //   var _room = await context.push(
-                      //     ChatPage(
-                      //       qiscus: qiscus,
-                      //       account: account,
-                      //       room: room,
-                      //     ),
-                      //   );
-                      //   if (_room != null) {
-                      //     setState(() {
-                      //       this.rooms.update(room.id, (r) {
-                      //         return _room;
-                      //       });
-                      //     });
-                      //   }
-                      // },
+                      leading: avatar(room),
+                      title: Text(room.participants.firstWhere((element) => element.id != account.id).name),
+                      subtitle: info(room, lastMessage),
+                      trailing: timeStamp(room),
+                      onTap: () async {
+                        await navigate(context, room);
+                      },
                     );
                   },
                   itemCount: snapshot.data.length,
@@ -263,17 +132,19 @@ class _RoomListPageState extends State<RoomListPage> {
                       color: Colors.black38,
                     );
                   },
-                ),
-              ),
-            );
-          } else return Container();
-        },
+                );
+              } else {
+                return Container();
+              }
+            },
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.search),
         onPressed: () {
           context.push(UserListPage(
-            qiscus: ChatSDK().qiscusSDK,
+            qiscus: ChatSDK().instance,
             account: account,
           ));
         },
@@ -281,38 +152,106 @@ class _RoomListPageState extends State<RoomListPage> {
     );
   }
 
+  Future navigate(BuildContext context, QChatRoom room) async {
+    var _room = await context.push(
+      ChatPage(
+        qiscus: ChatSDK().instance,
+        account: account,
+        room: room,
+      ),
+    );
+    _bloc.updateRoom(_room, room);
+  }
+
+  StatelessWidget timeStamp(QChatRoom room) {
+    return room.lastMessage != null
+        ? Text(
+            formatDate(
+              room.lastMessage?.timestamp,
+              [HH, ':', mm],
+            ),
+          )
+        : Container();
+  }
+
+  Widget info(QChatRoom room, String lastMessage) {
+    return room.type == QRoomType.single
+        ? Text(
+            lastMessage,
+            style: TextStyle(
+              fontStyle: FontStyle.italic,
+              fontSize: 12,
+            ),
+            overflow: TextOverflow.ellipsis,
+          )
+        : Row(
+            children: <Widget>[
+              Expanded(
+                flex: 0,
+                child: Text(
+                  '${room.lastMessage.sender.name}: ',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  lastMessage,
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    fontSize: 12,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          );
+  }
+
+  Stack avatar(QChatRoom room) {
+    return Stack(
+      overflow: Overflow.visible,
+      children: <Widget>[
+        Hero(
+          tag: HeroTags.roomAvatar(roomId: room.id),
+          child: Avatar(url: room.avatarUrl),
+        ),
+        if (room.unreadCount > 0)
+          Positioned(
+            bottom: -3,
+            right: -3,
+            child: Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(50)),
+                color: Colors.redAccent,
+                border: Border.fromBorderSide(BorderSide(
+                  color: Colors.white,
+                  width: 1,
+                )),
+              ),
+              child: Center(
+                child: Text(
+                  room.unreadCount > 9 ? '9+' : room.unreadCount.toString(),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   String _getLastMessage(QMessage lastMessage) {
-    if (lastMessage == null) return 'No messages';
+    if (lastMessage == null || lastMessage.text.isEmpty) return 'No messages';
     if (lastMessage.text.contains('[file]')) return 'File attachment';
     return lastMessage.text;
   }
-
-  // void _onRoomCleared(int roomId) {
-  //   if (!this.mounted) return;
-  //   setState(() {
-  //     rooms.removeWhere((key, value) => key == roomId);
-  //   });
-  // }
-
-  // void _onMessageReceived(QMessage message) async {
-  //   if (!this.mounted) return;
-  //   var roomId = message.chatRoomId;
-  //   var hasRoom = this.rooms.containsKey(roomId);
-  //
-  //   QChatRoom room;
-  //   if (!hasRoom) {
-  //     var rooms = await qiscus.getChatRooms$(roomIds: [roomId]);
-  //     room = rooms.first;
-  //   }
-  //
-  //   setState(() {
-  //     this.rooms.update(roomId, (room) {
-  //       room.lastMessage = message;
-  //       room.unreadCount++;
-  //       return room;
-  //     }, ifAbsent: () {
-  //       return room;
-  //     });
-  //   });
-  // }
 }

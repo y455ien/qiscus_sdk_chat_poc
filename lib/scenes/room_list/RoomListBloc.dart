@@ -10,29 +10,55 @@ class RoomListBloc {
       StreamController<HashMap<int, QChatRoom>>();
 
   RoomListBloc() {
-    ChatSDK().qiscusSDK.onMessageReceived(_onMessageReceived);
+    ChatSDK().instance.onMessageReceived(_onMessageReceived);
     getAllChatRooms();
   }
 
-  getAllChatRooms() {
-    scheduleMicrotask(() async {
-      ChatSDK().qiscusSDK.getAllChatRooms(callback: (rooms, err) {
-        if (err != null) {
-          throw err;
-        }
-        if (err == null) {
-          var entries = rooms.map((r) => MapEntry(r.id, r));
-          this.rooms.addEntries(entries);
-          chatRoomsStream.add(this.rooms);
-        }
-      });
-    });
+  getAllChatRooms() async {
+    var rooms = await ChatSDK().instance.getAllChatRooms$(
+          showParticipant: true,
+          showEmpty: true,
+        );
+    var entries = rooms.map((r) => MapEntry(r.id, r));
+    this.rooms.addEntries(entries);
+    _sortChatRooms();
+    chatRoomsStream.add(this.rooms);
+
+    // scheduleMicrotask(() async {
+    //   ChatSDK().instance.getAllChatRooms(showParticipant: true, showEmpty: true, callback: (rooms, err) {
+    //     if (err != null) {
+    //       throw err;
+    //     }
+    //     if (err == null) {
+    //       var entries = rooms.map((r) => MapEntry(r.id, r));
+    //       this.rooms.addEntries(entries);
+    //       _sortChatRooms();
+    //       chatRoomsStream.add(this.rooms);
+    //     }
+    //   });
+    // });
   }
 
-  refresh() async {
-    var rooms = await ChatSDK().qiscusSDK.getAllChatRooms$();
-    this.rooms.addEntries(rooms.map((r) => MapEntry(r.id, r)));
-    this.chatRoomsStream.add(this.rooms);
+  updateRoom(QChatRoom _room, QChatRoom selectedRoom) {
+    if (_room != null) {
+      this.rooms.update(selectedRoom.id, (r) {
+        return _room;
+      });
+      this.chatRoomsStream.add(this.rooms);
+    }
+  }
+
+  // refresh() async {
+  //   var rooms = await ChatSDK().instance.getAllChatRooms$();
+  //   this.rooms.addEntries(rooms.map((r) => MapEntry(r.id, r)));
+  //   this.chatRoomsStream.add(this.rooms);
+  // }
+
+  void _sortChatRooms() {
+    this.rooms.values.where((r) => r.lastMessage != null).toList()
+      ..sort((r1, r2) {
+        return r2.lastMessage.timestamp.compareTo(r1.lastMessage.timestamp);
+      });
   }
 
   void _onMessageReceived(QMessage message) async {
@@ -41,7 +67,7 @@ class RoomListBloc {
 
     QChatRoom room;
     if (!hasRoom) {
-      var rooms = await ChatSDK().qiscusSDK.getChatRooms$(roomIds: [roomId]);
+      var rooms = await ChatSDK().instance.getChatRooms$(roomIds: [roomId]);
       room = rooms.first;
     }
 
@@ -58,6 +84,6 @@ class RoomListBloc {
 
   onDispose() {
     chatRoomsStream?.close();
-    ChatSDK().qiscusSDK.onMessageReceived(null);
+    ChatSDK().instance.onMessageReceived(null);
   }
 }

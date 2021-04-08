@@ -10,11 +10,11 @@ import 'package:grouped_list/grouped_list.dart';
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-import '../constants.dart';
-import '../extensions.dart';
-import '../widget/avatar_widget.dart';
-import '../widget/chat_bubble_widget.dart';
-import 'chat_room_detail_page.dart';
+import '../../constants.dart';
+import '../../extensions.dart';
+import '../../widget/avatar_widget.dart';
+import '../../widget/chat_bubble_widget.dart';
+import '../chat_room_detail_page.dart';
 
 enum _PopupMenu {
   detail,

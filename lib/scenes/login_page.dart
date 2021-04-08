@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:chat_poc/ChatSDK.dart';
+import 'package:chat_poc/scenes/helper/ProjectHelperScreen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -13,7 +14,7 @@ import 'room_list/room_list_page.dart';
 class LoginPage extends StatefulWidget {
   LoginPage();
 
-  final QiscusSDK qiscus = ChatSDK().qiscusSDK;
+  final QiscusSDK qiscus = ChatSDK().instance;
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -127,7 +128,7 @@ class _LoginPageState extends State<LoginPage> {
 
                             scaffoldKey.currentState?.hideCurrentSnackBar();
 
-                            context.pushReplacement(RoomListPage(
+                            context.pushReplacement(ProjectHelperScreen(
                               qiscus: widget.qiscus,
                               account: account,
                             ));

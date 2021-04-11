@@ -30,7 +30,7 @@ class ChatBubble extends StatelessWidget {
         // textDirection: TextDirection.rtl,
         textDirection: flipped ? TextDirection.rtl : TextDirection.ltr,
         children: <Widget>[
-          Avatar(url: sender.avatarUrl),
+          // Avatar(url: sender.avatarUrl),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Column(
@@ -56,10 +56,16 @@ class ChatBubble extends StatelessWidget {
                         ),
                       ),
                     ),
+                    // ..._buildTimestamp(),
+                    // ..._buildStatus(),
+                  ],
+                ),
+                Row(
+                  children: [
                     ..._buildTimestamp(),
                     ..._buildStatus(),
                   ],
-                ),
+                )
               ],
             ),
           ),
@@ -70,30 +76,30 @@ class ChatBubble extends StatelessWidget {
 
   BoxDecoration _containerDecoration() {
     return BoxDecoration(
-      color: Colors.black12,
-      border: Border.fromBorderSide(BorderSide(
-        color: Colors.black12,
-        width: 1.0,
-      )),
+      color: !flipped ? Colors.grey : Colors.blue,
+      // border: Border.fromBorderSide(BorderSide(
+      //   color: Colors.black12,
+      //   width: 1.0,
+      // )),
       borderRadius: BorderRadius.all(
-        Radius.elliptical(5, 5),
+        Radius.elliptical(18, 18),
       ),
     );
   }
 
   List<Widget> _buildTimestamp() {
     return [
-      Positioned(
-        top: -10,
-        right: !flipped ? 0 : null,
-        left: flipped ? 0 : null,
-        child: Text(
-          message.timestamp.millisecondsSinceEpoch.toString(),
-          style: TextStyle(
-            fontSize: 8,
-          ),
-        ),
-      ),
+      // Positioned(
+      //   top: -10,
+      //   right: !flipped ? 0 : null,
+      //   left: flipped ? 0 : null,
+      //   child: Text(
+      //     message.timestamp.millisecondsSinceEpoch.toString(),
+      //     style: TextStyle(
+      //       fontSize: 8,
+      //     ),
+      //   ),
+      // ),
       if (flipped)
         Positioned(
           left: -32,

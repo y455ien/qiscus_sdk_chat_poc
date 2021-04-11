@@ -47,6 +47,12 @@ dependencies:
   path_provider: ^1.6.27
   emoji_picker: ^0.1.0
 
+  flutter_sound: ^7.7.0+1
+  path: ^1.6.4
+  #flutter_ffmpeg: ^0.3.1
+#  intl: ^0.17.0
+  #pedantic: ^1.11.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
